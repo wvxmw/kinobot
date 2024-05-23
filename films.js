@@ -39,9 +39,5 @@ const films = {
       name: "Парни со стволами",
       type: "Фильм",
    },
-   1010: {
-      name: "Жизнь Пи",
-      type: "Фильм",
-   },
 };
 module.exports = films;
