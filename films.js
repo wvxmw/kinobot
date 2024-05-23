@@ -38,10 +38,6 @@ const films = {
    1009: {
       name: "Парни со стволами",
       type: "Фильм",
-   },
-   1010: {
-      name: "Парни со стволами",
-      type: "Фильм",
-   },
+   }
 };
 module.exports = films;
