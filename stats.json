@@ -1,1 +1,8 @@
-{"membersCounterActive":3,"membersCounter":3,"members":{"752366436":{"name":"wvxmw","username":"@bageyn"},"5509442847":{"name":"дмитрий","username":"@wvxmw"},"6109240097":{"name":"дмитрий","username":"@undefined"}}}
+{
+   "membersCounter": 3,
+   "members": {
+      "752366436": { "name": "wvxmw", "username": "bageyn" },
+      "5509442847": { "name": "дмитрий", "username": "wvxmw" },
+      "6109240097": { "name": "дмитрий" }
+   }
+}

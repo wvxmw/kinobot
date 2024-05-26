@@ -17,10 +17,10 @@ bot.start(async (ctx) => {
    if (!(chatId in data.members)) {
       data.members[chatId] = {
          name: ctx.message.chat.first_name,
-         username: `@${ctx.message.chat.username}`,
       };
+      if (ctx.message.chat.username)
+         data.members[chatId].username = ctx.message.chat.username;
       data.membersCounter += 1;
-      data.membersCounterActive += 1;
       fs.writeFileSync(statsPath, JSON.stringify(data), {
          encoding: "utf8",
          flag: "w",
@@ -32,7 +32,6 @@ bot.help(
 );
 
 bot.on("message", async (ctx) => {
-   console.log(ctx.message);
    if (!ctx.message.text) await ctx.reply("Пришли код фильма");
    else {
       if (ctx.message.text.trim() === "/bonus") {
@@ -54,9 +53,15 @@ bot.on("message", async (ctx) => {
             const data = JSON.parse(
                fs.readFileSync(statsPath, { encoding: "utf8" })
             );
-            let reply = `Пользователи за все время: ${data.membersCounter}\nАктивные пользователи: ${data.membersCounterActive}`;
+            let reply = `Всего пользователей: ${data.membersCounter}`;
             for (let member in data.members) {
-               const memberString = `\n<code>${member}</code> | ${data.members[member].username} | ${data.members[member].name}`;
+               const memberString = `\n<code>${member}</code> | ${
+                  data.members[member].name
+               } | ${
+                  data.members[member].username
+                     ? "@" + data.members[member].username
+                     : "–"
+               }`;
                const temp = reply + memberString;
                if (temp.length >= 4096) {
                   await ctx.replyWithHTML(reply);
