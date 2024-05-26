@@ -1,7 +1,9 @@
 const { Telegraf, Markup } = require("telegraf");
 const films = require("./films");
 const fs = require("fs");
+const { log } = require("console");
 const refLink = "https://kurl.ru/ASKye";
+const statsPath = "stats.json";
 require("dotenv").config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -10,11 +12,16 @@ bot.start(async (ctx) => {
       "<b>Привет!</b>\nНапиши код фильма и я пришлю название"
    );
    const chatId = ctx.message.chat.id;
-   const path = "chat_ids.json";
-   const data = JSON.parse(fs.readFileSync(path, { encoding: "utf8" }));
-   if (!(chatId in data)) {
-      data[chatId] = chatId;
-      fs.writeFileSync(path, JSON.stringify(data), {
+
+   const data = JSON.parse(fs.readFileSync(statsPath, { encoding: "utf8" }));
+   if (!(chatId in data.members)) {
+      data.members[chatId] = {
+         name: ctx.message.chat.first_name,
+         username: `@${ctx.message.chat.username}`,
+      };
+      data.membersCounter += 1;
+      data.membersCounterActive += 1;
+      fs.writeFileSync(statsPath, JSON.stringify(data), {
          encoding: "utf8",
          flag: "w",
       });
@@ -25,6 +32,7 @@ bot.help(
 );
 
 bot.on("message", async (ctx) => {
+   console.log(ctx.message);
    if (!ctx.message.text) await ctx.reply("Пришли код фильма");
    else {
       if (ctx.message.text.trim() === "/bonus") {
@@ -41,6 +49,25 @@ bot.on("message", async (ctx) => {
          );
       } else if (ctx.message.text.trim() === "/tutorial") {
          await sendTutorial(ctx);
+      } else if (ctx.message.text.trim() === "/stats") {
+         if (ctx.message.chat.id === 5509442847) {
+            const data = JSON.parse(
+               fs.readFileSync(statsPath, { encoding: "utf8" })
+            );
+            let reply = `Пользователи за все время: ${data.membersCounter}\nАктивные пользователи: ${data.membersCounterActive}`;
+            for (let member in data.members) {
+               const memberString = `\n<code>${member}</code> | ${data.members[member].username} | ${data.members[member].name}`;
+               const temp = reply + memberString;
+               if (temp.length >= 4096) {
+                  await ctx.replyWithHTML(reply);
+                  reply = "";
+               }
+               reply += memberString;
+            }
+            if (reply.length.trim != "") await ctx.replyWithHTML(reply);
+         } else {
+            await ctx.reply("У вас нет доступа к этой команде");
+         }
       } else {
          const id = +ctx.message.text.trim();
          if (id in films) {
@@ -54,9 +81,7 @@ bot.on("message", async (ctx) => {
                   ...Markup.inlineKeyboard([
                      [
                         Markup.button.url(
-                           `СМОТРЕТЬ ${
-                              films[id].type.toUpperCase()
-                           } 🎬`,
+                           `СМОТРЕТЬ ${films[id].type.toUpperCase()} 🎬`,
                            refLink
                         ),
                      ],
