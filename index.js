@@ -2,7 +2,7 @@ const { Telegraf, Markup } = require("telegraf");
 const films = require("./films");
 const fs = require("fs");
 const { log } = require("console");
-const refLink = "https://kurl.ru/ASKye";
+const refLink = "https://clck.ru/3BERAV";
 const statsPath = "stats.json";
 require("dotenv").config();
 
