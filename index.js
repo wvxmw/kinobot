@@ -1,7 +1,7 @@
 const { Telegraf, Markup } = require("telegraf");
 const films = require("./films");
+const channels = require("./channels");
 const fs = require("fs");
-const { log } = require("console");
 const refLink = "https://clck.ru/3BERAV";
 const statsPath = "stats.json";
 require("dotenv").config();
@@ -74,37 +74,70 @@ bot.on("message", async (ctx) => {
             await ctx.reply("У вас нет доступа к этой команде");
          }
       } else {
-         const id = +ctx.message.text.trim();
-         if (id in films) {
-            await ctx.replyWithPhoto(
+         const userId = ctx.message.chat.id;
+         let notSubcribedChannels = [];
+         for (let channel of channels) {
+            await ctx.telegram
+               .getChatMember(`@${channel.url}`, userId)
+               .then((s) => {
+                  if (s.status === "left") notSubcribedChannels.push(channel);
+               })
+               .catch(() => {});
+         }
+         if (notSubcribedChannels.length > 0) {
+            channelsButtons = [];
+            notSubcribedChannels.forEach(({title, url}) => {
+               channelsButtons.push([
+                  Markup.button.url(title, `t.me/${url}`),
+               ]);
+            });
+            let channelCountText = "каналы";
+            if (notSubcribedChannels.length === 1) channelCountText = "канал";
+            await ctx.replyWithHTML(
+               `📝 Для использования бота, вы должны подписаться на ${channelCountText} ниже!\n\nПосле подписки отправьте код фильма ещё раз`,
                {
-                  source: "./img/bonus.png",
-               },
-               {
-                  caption: `🎬 <b>${films[id].type}: ${films[id].name}</b>\n\nДля удобного просмотра фильмов и сериалов в отличном качестве без рекламы пройдите по <b><a href="${refLink}">ссылке</a></b> или кнопке ниже\n\nА также получите бонусы при регистрации 🔔`,
-                  parse_mode: "HTML",
-                  ...Markup.inlineKeyboard([
-                     [
-                        Markup.button.url(
-                           `СМОТРЕТЬ ${films[id].type.toUpperCase()} 🎬`,
-                           refLink
-                        ),
-                     ],
-                     [Markup.button.url("ПОЛУЧИТЬ БОНУС + 500% 🚀", refLink)],
-                     [
-                        Markup.button.callback(
-                           "ИНСТРУКЦИЯ ПО ПРОСМОТРУ ⚙️",
-                           "btn_tutorial"
-                        ),
-                     ],
-                  ]),
+                  ...Markup.inlineKeyboard(channelsButtons),
                   disable_web_page_preview: true,
                }
             );
          } else {
-            await ctx.reply(
-               "Фильм с таким кодом не найден, проверь код и попробуй ещё раз"
-            );
+            const id = +ctx.message.text.trim();
+            if (id in films) {
+               await ctx.replyWithPhoto(
+                  {
+                     source: "./img/bonus.png",
+                  },
+                  {
+                     caption: `🎬 <b>${films[id].type}: ${films[id].name}</b>\n\nДля удобного просмотра фильмов и сериалов в отличном качестве без рекламы пройдите по <b><a href="${refLink}">ссылке</a></b> или кнопке ниже\n\nА также получите бонусы при регистрации 🔔`,
+                     parse_mode: "HTML",
+                     ...Markup.inlineKeyboard([
+                        [
+                           Markup.button.url(
+                              `СМОТРЕТЬ ${films[id].type.toUpperCase()} 🎬`,
+                              refLink
+                           ),
+                        ],
+                        [
+                           Markup.button.url(
+                              "ПОЛУЧИТЬ БОНУС + 500% 🚀",
+                              refLink
+                           ),
+                        ],
+                        [
+                           Markup.button.callback(
+                              "ИНСТРУКЦИЯ ПО ПРОСМОТРУ ⚙️",
+                              "btn_tutorial"
+                           ),
+                        ],
+                     ]),
+                     disable_web_page_preview: true,
+                  }
+               );
+            } else {
+               await ctx.reply(
+                  "Фильм с таким кодом не найден, проверь код и попробуй ещё раз"
+               );
+            }
          }
       }
    }
