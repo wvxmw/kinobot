@@ -73,6 +73,16 @@ bot.on("message", async (ctx) => {
          } else {
             await ctx.reply("У вас нет доступа к этой команде");
          }
+      } else if (ctx.message.text.trim() === "/statsn") {
+         if (ctx.message.chat.id === 5509442847) {
+            const data = JSON.parse(
+               fs.readFileSync(statsPath, { encoding: "utf8" })
+            );
+            let reply = `Всего пользователей: ${data.membersCounter}`;
+            if (reply.length.trim != "") await ctx.replyWithHTML(reply);
+         } else {
+            await ctx.reply("У вас нет доступа к этой команде");
+         }
       } else {
          const userId = ctx.message.chat.id;
          let notSubcribedChannels = [];
@@ -86,10 +96,8 @@ bot.on("message", async (ctx) => {
          }
          if (notSubcribedChannels.length > 0) {
             channelsButtons = [];
-            notSubcribedChannels.forEach(({title, url}) => {
-               channelsButtons.push([
-                  Markup.button.url(title, `t.me/${url}`),
-               ]);
+            notSubcribedChannels.forEach(({ title, url }) => {
+               channelsButtons.push([Markup.button.url(title, `t.me/${url}`)]);
             });
             let channelCountText = "каналы";
             if (notSubcribedChannels.length === 1) channelCountText = "канал";
